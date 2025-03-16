@@ -596,12 +596,12 @@ const __dirname = path.dirname(__filename);
 
 if (process.env.NODE_ENV === 'production') {
   // Serve static files from the React app
-  const frontendBuildPath = path.join(__dirname, '../frontend/dist');
+  const frontendBuildPath = path.resolve(__dirname, '../frontend/dist');
   app.use(express.static(frontendBuildPath));
 
-  // Handle React routing, return all requests to React app
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(frontendBuildPath, 'index.html'));
+  // Catch-all route handler
+  app.get('/*', function(req, res) {
+    res.sendFile(path.resolve(frontendBuildPath, 'index.html'));
   });
 }
 
