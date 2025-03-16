@@ -603,11 +603,20 @@ const __dirname = path.dirname(__filename);
 if (process.env.NODE_ENV === 'production') {
   // Serve static files from the React app
   const frontendBuildPath = path.resolve(__dirname, '../frontend/dist');
+  
+  // Serve static files
   app.use(express.static(frontendBuildPath));
-
-  // Catch-all route handler - only match non-API routes
-  app.get(/^(?!\/api).*/, function(req, res) {
-    res.sendFile(path.resolve(frontendBuildPath, 'index.html'));
+  
+  // Serve API routes first
+  app.use('/api', (req, res, next) => {
+    if (req.path.startsWith('/api')) {
+      next();
+    }
+  });
+  
+  // Handle all other routes by serving index.html
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(frontendBuildPath, 'index.html'));
   });
 }
 
