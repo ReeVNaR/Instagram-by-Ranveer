@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-export const API_URL = "https://instagram-by-ranveer.onrender.com/api"; // Updated to deployed backend URL
+export const API_URL = process.env.NODE_ENV === 'production' 
+  ? "https://instagram-by-ranveer.onrender.com/api" 
+  : "http://localhost:5000/api";
 
 axios.interceptors.request.use(
   (config) => {
