@@ -42,6 +42,7 @@ const LoginPage = () => {
           <input
             type="text"
             placeholder="Username"
+            name="username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             className="w-full p-3 border rounded-lg mb-4 focus:outline-none focus:border-[#0095F6]"
@@ -50,6 +51,7 @@ const LoginPage = () => {
         <input
           type="email"
           placeholder="Email"
+          name="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           className="w-full p-3 border rounded-lg mb-4 focus:outline-none focus:border-[#0095F6]"
@@ -57,6 +59,7 @@ const LoginPage = () => {
         <input
           type="password"
           placeholder="Password"
+          name="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           className="w-full p-3 border rounded-lg mb-6 focus:outline-none focus:border-[#0095F6]"
