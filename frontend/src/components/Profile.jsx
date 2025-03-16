@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { FaUser, FaUpload, FaTrash } from 'react-icons/fa';
+import axios, { API_URL } from '../config/axios';
 import PopupModal from './PopupModal';
 import { useTheme } from '../context/ThemeContext';
 
@@ -72,9 +73,7 @@ const Profile = ({ profileData, isEditing, handleSaveProfile, setSelectedImage, 
                   
         <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-6 mb-6">
           <div className="relative group w-24 h-24 sm:w-32 sm:h-32">
-            <div className={`w-20 h-20 rounded-full overflow-hidden ${
-              isDarkMode ? 'bg-dark-primary' : 'bg-gray-200'
-            }`}>
+            <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden flex items-center justify-center">
               {profileData.user.profilePic ? (
                 <img 
                   src={profileData.user.profilePic} 
@@ -82,13 +81,15 @@ const Profile = ({ profileData, isEditing, handleSaveProfile, setSelectedImage, 
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                <div className={`w-full h-full flex items-center justify-center ${
+                  isDarkMode ? 'bg-dark-primary' : 'bg-gray-200'
+                }`}>
                   <FaUser className="text-gray-500 text-4xl" />
                 </div>
               )}
             </div>
             {isEditing && (
-              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 rounded-full flex items-center justify-center transition-all cursor-pointer">
+              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 rounded-full flex items-center justify-center transition-all duration-200">
                 <label className="cursor-pointer w-full h-full flex items-center justify-center">
                   <input
                     type="file"
@@ -99,7 +100,7 @@ const Profile = ({ profileData, isEditing, handleSaveProfile, setSelectedImage, 
                     }}
                     accept="image/*"
                   />
-                  <FaUpload className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <FaUpload className="text-white opacity-0 group-hover:opacity-100 transition-opacity text-2xl" />
                 </label>
               </div>
             )}
