@@ -13,10 +13,21 @@ dotenv.config();
 
 // Initialize Express app
 const app = express();
-app.use(cors({
-  origin: ['http://localhost:5173', 'https://instagram-by-reevnar.onrender.com'],
-  credentials: true
-}));
+
+// CORS configuration
+const corsOptions = {
+  origin: [
+    'http://localhost:5173',
+    'https://instagram-by-reevnar.onrender.com',
+    'https://instagram-by-ranveer-1.onrender.com'
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Connect to MongoDB
