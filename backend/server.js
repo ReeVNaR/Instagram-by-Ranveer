@@ -14,12 +14,7 @@ dotenv.config();
 // Initialize Express app
 const app = express();
 app.use(cors({
-  origin: [
-    'https://instagram-by-reevnar.onrender.com',
-    'http://localhost:5173' // Keep local development working
-  ],
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  origin: ['http://localhost:5173', 'https://instagram-by-reevnar.onrender.com'],
   credentials: true
 }));
 app.use(express.json());

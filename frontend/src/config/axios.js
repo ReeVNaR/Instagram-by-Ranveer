@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-export const API_URL = "http://localhost:5000/api"; // Updated to include /api path
+export const API_URL = "https://instagram-by-ranveer.onrender.com/api"; // Updated to deployed backend URL
 
 axios.interceptors.request.use(
   (config) => {
