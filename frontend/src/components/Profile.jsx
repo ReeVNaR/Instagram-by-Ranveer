@@ -21,15 +21,23 @@ const Profile = ({ profileData, isEditing, handleSaveProfile, setSelectedImage, 
     setDeleteModal({ isOpen: false, postId: null });
   };
 
-  const handleProfilePicUpdate = async () => {
-    if (!profilePic) return;
+  const handleProfilePicChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
     try {
       const formData = new FormData();
-      formData.append("image", profilePic);
-      await axios.post(`${API_URL}/profile/picture`, formData);
-      // Refresh profile data after update
-      window.location.reload();
+      formData.append("image", file);
+      
+      const response = await axios.post(`${API_URL}/profile/picture`, formData);
+      // Update the profileData directly instead of page reload
+      if (response.data && response.data.profilePic) {
+        profileData.user.profilePic = response.data.profilePic;
+        // Force re-render
+        setProfilePic(file);
+      }
     } catch (err) {
+      console.error('Error updating profile picture:', err);
       alert("Failed to update profile picture");
     }
   };
@@ -94,10 +102,7 @@ const Profile = ({ profileData, isEditing, handleSaveProfile, setSelectedImage, 
                   <input
                     type="file"
                     className="hidden"
-                    onChange={(e) => {
-                      setProfilePic(e.target.files[0]);
-                      handleProfilePicUpdate();
-                    }}
+                    onChange={handleProfilePicChange}
                     accept="image/*"
                   />
                   <FaUpload className="text-white opacity-0 group-hover:opacity-100 transition-opacity text-2xl" />
