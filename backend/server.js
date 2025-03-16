@@ -596,18 +596,21 @@ app.get('/api/health', (req, res) => {
 // Express static file serving for production
 import path from 'path';
 import { fileURLToPath } from 'url';
-import fs from 'fs';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Move this section to after all API routes
 if (process.env.NODE_ENV === 'production') {
+  const buildPath = path.join(__dirname, '../frontend/dist');
+  
   // Serve static files
-  app.use(express.static(path.join(__dirname, '../frontend/dist')));
+  app.use(express.static(buildPath));
 
-  // Handle ALL non-API routes by serving the React app
-  app.get(/^(?!\/api).*/, (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+  // Handle client-side routing
+  app.get('*', (req, res) => {
+    if (req.url.startsWith('/api')) {
+      return res.status(404).json({ error: 'API endpoint not found' });
+    }
+    res.sendFile(path.join(buildPath, 'index.html'));
   });
 }
 
@@ -618,5 +621,5 @@ app.use((err, req, res, next) => {
 });
 
 // Start Server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+const serverPort = process.env.PORT || 5000;
+app.listen(serverPort, () => console.log(`Server running on port ${serverPort}`));
