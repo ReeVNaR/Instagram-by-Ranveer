@@ -596,38 +596,27 @@ app.get('/api/health', (req, res) => {
 // Express static file serving for production
 import path from 'path';
 import { fileURLToPath } from 'url';
-import fs from 'fs';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Move production configuration after all API routes
 if (process.env.NODE_ENV === 'production') {
+  // Serve static files from the React app
   const frontendBuildPath = path.resolve(__dirname, '../frontend/dist');
   
-  // Check if build directory exists
-  if (!fs.existsSync(frontendBuildPath)) {
-    console.warn('Warning: Build directory not found:', frontendBuildPath);
-  } else {
-    // Serve static files
-    app.use(express.static(frontendBuildPath));
-  }
-
-  // Handle all routes
+  // Serve static files
+  app.use(express.static(frontendBuildPath));
+  
+  // Serve API routes first
+  app.use('/api', (req, res, next) => {
+    if (req.path.startsWith('/api')) {
+      next();
+    }
+  });
+  
+  // Handle all other routes by serving index.html
   app.get('*', (req, res) => {
-    if (req.url.startsWith('/api')) {
-      // Let API routes be handled by their handlers
-      return next();
-    }
-
-    const indexPath = path.join(frontendBuildPath, 'index.html');
-    
-    // Check if index.html exists before sending
-    if (fs.existsSync(indexPath)) {
-      res.sendFile(indexPath);
-    } else {
-      res.status(404).json({ 
-        error: 'Frontend build not found. Please ensure the frontend is built and deployed correctly.'
-      });
-    }
+    res.sendFile(path.join(frontendBuildPath, 'index.html'));
   });
 }
 
