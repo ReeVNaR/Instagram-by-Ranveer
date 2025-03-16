@@ -588,35 +588,18 @@ app.get("/api/messages/:friendId/unread/count", auth, async (req, res) => {
   }
 });
 
-// Move API health check before static serving
+// Move API health check before main route handling
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-// Handle static files and frontend routes in production
-if (process.env.NODE_ENV === 'production') {
-  // Serve static files from the frontend build directory
-  const path = await import('path');
-  const __dirname = path.dirname(new URL(import.meta.url).pathname);
-  
-  app.use(express.static(path.join(__dirname, '../frontend/dist')));
-
-  // Handle frontend routes
-  app.get('*', (req, res) => {
-    if (req.url.startsWith('/api')) {
-      return res.status(404).json({ error: 'API endpoint not found' });
-    }
-    res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
-  });
-} else {
-  // Development environment - return API running message
-  app.get('*', (req, res, next) => {
-    if (req.url.startsWith('/api')) {
-      return next();
-    }
-    res.json({ message: 'Backend API is running' });
-  });
-}
+// Simple route handler for all non-API routes
+app.get('*', (req, res, next) => {
+  if (req.url.startsWith('/api')) {
+    return next();
+  }
+  res.json({ message: 'Backend API is running' });
+});
 
 // Error handler should be last
 app.use((err, req, res, next) => {
@@ -625,8 +608,7 @@ app.use((err, req, res, next) => {
 });
 
 // Start Server
-const serverPort = process.env.PORT || 5000;
+const serverPort = 5000;
 app.listen(serverPort, () => {
   console.log(`Server running on port ${serverPort}`);
-  console.log('Environment:', process.env.NODE_ENV || 'development');
 });
