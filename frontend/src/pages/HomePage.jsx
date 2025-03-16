@@ -275,6 +275,19 @@ const HomePage = () => {
     return () => window.removeEventListener('focus', handlePageRefresh);
   }, [activeTab, feedPosts, profileData, unreadMessages]);
 
+  // Add this new effect to handle browser refresh
+  useEffect(() => {
+    const handleBrowserRefresh = (e) => {
+      if ((e.ctrlKey && e.key === 'r') || e.key === 'F5') {
+        e.preventDefault();
+        handleRefresh();
+      }
+    };
+
+    window.addEventListener('keydown', handleBrowserRefresh);
+    return () => window.removeEventListener('keydown', handleBrowserRefresh);
+  }, [activeTab, feedPosts, profileData, unreadMessages]);
+
   const renderContent = () => {
     switch (activeTab) {
       case 'search':
