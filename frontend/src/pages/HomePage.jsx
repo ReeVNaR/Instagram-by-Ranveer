@@ -37,6 +37,8 @@ const HomePage = () => {
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [showAccount, setShowAccount] = useState(false);
   const [isPrivate, setIsPrivate] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [refreshStatus, setRefreshStatus] = useState('');
 
   const fetchFeed = async () => {
     setIsLoading(true);
@@ -219,6 +221,60 @@ const HomePage = () => {
     }
   }, [activeTab]);
 
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    setRefreshStatus('Checking for updates...');
+    
+    try {
+      let hasUpdates = false;
+      
+      if (activeTab === 'feed') {
+        const res = await axios.get(`${API_URL}/feed`);
+        if (JSON.stringify(res.data) !== JSON.stringify(feedPosts)) {
+          setFeedPosts(res.data);
+          hasUpdates = true;
+        }
+      } else if (activeTab === 'profile') {
+        const res = await axios.get(`${API_URL}/profile`);
+        if (JSON.stringify(res.data) !== JSON.stringify(profileData)) {
+          setProfileData(res.data);
+          hasUpdates = true;
+        }
+      }
+
+      // Check for new messages
+      const msgRes = await axios.get(`${API_URL}/messages/unread/count`);
+      if (msgRes.data.count > unreadMessages) {
+        setUnreadMessages(msgRes.data.count);
+        hasUpdates = true;
+      }
+
+      // Check for new friend requests
+      const reqRes = await axios.get(`${API_URL}/friend-requests`);
+      if (reqRes.data.length > 0) {
+        hasUpdates = true;
+      }
+
+      setRefreshStatus(hasUpdates ? 'Updated successfully!' : 'Everything is up to date');
+      setTimeout(() => setRefreshStatus(''), 2000); // Clear status after 2 seconds
+    } catch (err) {
+      setRefreshStatus('Error refreshing data');
+      console.error('Refresh error:', err);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    // Handle page refresh
+    const handlePageRefresh = () => {
+      handleRefresh();
+    };
+
+    window.addEventListener('focus', handlePageRefresh);
+    return () => window.removeEventListener('focus', handlePageRefresh);
+  }, [activeTab, feedPosts, profileData, unreadMessages]);
+
   const renderContent = () => {
     switch (activeTab) {
       case 'search':
@@ -323,13 +379,24 @@ const HomePage = () => {
               Fake Insta
             </h1>
           </div>
-          <button 
-            onClick={handleLogout} 
-            className="text-[#0095F6] hover:text-blue-700 flex items-center space-x-2"
-          >
-            <FaSignOutAlt className="text-xl" />
-            <span className="hidden sm:inline">Logout</span>
-          </button>
+          <div className="flex items-center space-x-4">
+            {isRefreshing ? (
+              <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-[#0095F6]"></div>
+            ) : refreshStatus && (
+              <span className={`text-sm ${
+                refreshStatus.includes('Error') ? 'text-red-500' : 'text-green-500'
+              }`}>
+                {refreshStatus}
+              </span>
+            )}
+            <button 
+              onClick={handleLogout} 
+              className="text-[#0095F6] hover:text-blue-700 flex items-center space-x-2"
+            >
+              <FaSignOutAlt className="text-xl" />
+              <span className="hidden sm:inline">Logout</span>
+            </button>
+          </div>
         </div>
       </div>
 
