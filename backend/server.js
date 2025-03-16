@@ -601,44 +601,31 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 if (process.env.NODE_ENV === 'production') {
-  // Determine the correct build path based on environment
-  const isRender = process.env.RENDER === 'true';
-  const frontendBuildPath = isRender 
-    ? path.resolve('/opt/render/project/src/frontend/build')  // Render path
-    : path.resolve(__dirname, '../frontend/dist');           // Local path
-
-  console.log('Current directory:', __dirname);
-  console.log('Looking for frontend build at:', frontendBuildPath);
-
-  // Check if build directory exists
-  if (!fs.existsSync(frontendBuildPath)) {
-    console.warn(`Warning: Build directory not found at ${frontendBuildPath}`);
-    console.warn('Creating directory...');
-    try {
-      fs.mkdirSync(frontendBuildPath, { recursive: true });
-    } catch (err) {
-      console.error('Error creating build directory:', err);
-    }
-  }
-
+  const frontendBuildPath = path.resolve(__dirname, '../frontend/dist');
+  
   // Serve static files
   app.use(express.static(frontendBuildPath));
 
-  // Handle client-side routing
-  app.get('*', (req, res, next) => {
-    if (req.url.startsWith('/api')) {
-      return next();
+  // Handle all non-API routes by serving index.html
+  app.get(/^(?!\/api).*/, (req, res) => {
+    try {
+      const indexPath = path.join(frontendBuildPath, 'index.html');
+      if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath);
+      } else {
+        console.error('index.html not found at:', indexPath);
+        res.status(404).send('Frontend not built');
+      }
+    } catch (err) {
+      console.error('Error serving index.html:', err);
+      res.status(500).send('Internal server error');
     }
+  });
 
-    const indexPath = path.join(frontendBuildPath, 'index.html');
-    if (fs.existsSync(indexPath)) {
-      res.sendFile(indexPath);
-    } else {
-      console.error('index.html not found at:', indexPath);
-      res.status(404).json({ 
-        error: 'Frontend not built. Please run npm run build in the frontend directory.'
-      });
-    }
+  // Error handler for API routes
+  app.use((err, req, res, next) => {
+    console.error('Server error:', err);
+    res.status(500).json({ error: 'Internal server error' });
   });
 }
 
