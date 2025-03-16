@@ -593,13 +593,30 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-// Handle non-API routes
-app.get('*', (req, res, next) => {
-  if (req.url.startsWith('/api')) {
-    return next();
-  }
-  res.json({ message: 'Backend API is running' });
-});
+// Handle static files and frontend routes in production
+if (process.env.NODE_ENV === 'production') {
+  // Serve static files from the frontend build directory
+  const path = await import('path');
+  const __dirname = path.dirname(new URL(import.meta.url).pathname);
+  
+  app.use(express.static(path.join(__dirname, '../frontend/dist')));
+
+  // Handle frontend routes
+  app.get('*', (req, res) => {
+    if (req.url.startsWith('/api')) {
+      return res.status(404).json({ error: 'API endpoint not found' });
+    }
+    res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+  });
+} else {
+  // Development environment - return API running message
+  app.get('*', (req, res, next) => {
+    if (req.url.startsWith('/api')) {
+      return next();
+    }
+    res.json({ message: 'Backend API is running' });
+  });
+}
 
 // Error handler should be last
 app.use((err, req, res, next) => {
