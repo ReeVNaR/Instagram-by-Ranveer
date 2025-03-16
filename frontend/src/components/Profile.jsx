@@ -26,15 +26,16 @@ const Profile = ({ profileData, isEditing, handleSaveProfile, setSelectedImage, 
     if (!file) return;
 
     try {
+      // Create FormData with the new image
       const formData = new FormData();
       formData.append("image", file);
       
+      // The backend will handle deleting the old image from Cloudinary
       const response = await axios.post(`${API_URL}/profile/picture`, formData);
-      // Update the profileData directly instead of page reload
+
       if (response.data && response.data.profilePic) {
         profileData.user.profilePic = response.data.profilePic;
-        // Force re-render
-        setProfilePic(file);
+        setProfilePic(file); // Force re-render
       }
     } catch (err) {
       console.error('Error updating profile picture:', err);
