@@ -593,62 +593,18 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-// Express static file serving for production
-import path from 'path';
-import { fileURLToPath } from 'url';
-import fs from 'fs';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-if (process.env.NODE_ENV === 'production') {
-  const buildPath = path.join(__dirname, '../frontend/dist');
-  
-  // Check if the build directory exists
-  if (fs.existsSync(buildPath)) {
-    // Serve static files
-    app.use(express.static(buildPath));
-
-    // Handle client-side routing
-    app.get('*', (req, res, next) => {
-      if (req.url.startsWith('/api')) {
-        return next(); // Let API routes handle API requests
-      }
-
-      // Check if index.html exists
-      const indexPath = path.join(buildPath, 'index.html');
-      if (fs.existsSync(indexPath)) {
-        res.sendFile(indexPath);
-      } else {
-        console.warn('Warning: index.html not found in build directory');
-        res.status(404).json({ error: 'Frontend not built' });
-      }
-    });
-  } else {
-    console.warn('Warning: Build directory not found at', buildPath);
-    // Continue without static file serving
-    app.get('*', (req, res, next) => {
-      if (!req.url.startsWith('/api')) {
-        res.status(404).json({ error: 'Frontend not built' });
-      } else {
-        next();
-      }
-    });
+// Handle non-API routes
+app.get('*', (req, res, next) => {
+  if (req.url.startsWith('/api')) {
+    return next();
   }
-}
+  res.json({ message: 'Backend API is running' });
+});
 
 // Error handler should be last
 app.use((err, req, res, next) => {
   console.error('Server error:', err);
-  // More detailed error logging
-  if (err.code === 'ENOENT') {
-    console.error('File not found:', err.path);
-  }
-  res.status(err.status || 500).json({ 
-    error: process.env.NODE_ENV === 'production' 
-      ? 'Internal server error' 
-      : err.message 
-  });
+  res.status(500).json({ error: 'Internal server error' });
 });
 
 // Start Server
@@ -656,11 +612,4 @@ const serverPort = process.env.PORT || 5000;
 app.listen(serverPort, () => {
   console.log(`Server running on port ${serverPort}`);
   console.log('Environment:', process.env.NODE_ENV || 'development');
-  
-  // Log build path in production
-  if (process.env.NODE_ENV === 'production') {
-    const buildPath = path.join(__dirname, '../frontend/dist');
-    console.log('Build path:', buildPath);
-    console.log('Build directory exists:', fs.existsSync(buildPath));
-  }
 });
