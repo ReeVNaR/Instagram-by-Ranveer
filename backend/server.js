@@ -600,48 +600,15 @@ import fs from 'fs';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Move this section to after all API routes
 if (process.env.NODE_ENV === 'production') {
-  // Determine build path based on environment
-  const buildPath = process.env.IS_RENDER 
-    ? '/opt/render/project/src/dist'  // Render's build path
-    : path.resolve(__dirname, '../frontend/dist'); // Local build path
+  // Serve static files
+  app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
-  console.log('Current directory:', __dirname);
-  console.log('Build path:', buildPath);
-  console.log('Index path:', path.join(buildPath, 'index.html'));
-  console.log('Build directory exists:', fs.existsSync(buildPath));
-
-  // Serve static files if build directory exists
-  if (fs.existsSync(buildPath)) {
-    app.use(express.static(buildPath));
-
-    // Single handler for all client-side routes
-    app.get('*', (req, res, next) => {
-      if (req.url.startsWith('/api')) {
-        return next();
-      }
-
-      const indexPath = path.join(buildPath, 'index.html');
-      
-      if (fs.existsSync(indexPath)) {
-        res.sendFile(indexPath, err => {
-          if (err) {
-            console.error('Error serving index.html:', err);
-            res.status(500).send('Error loading application');
-          }
-        });
-      } else {
-        res.status(404).send('Application not found');
-      }
-    });
-  } else {
-    console.warn('Warning: Build directory not found');
-    app.get('*', (req, res) => {
-      if (!req.url.startsWith('/api')) {
-        res.status(404).send('Application not built');
-      }
-    });
-  }
+  // Handle ALL non-API routes by serving the React app
+  app.get(/^(?!\/api).*/, (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+  });
 }
 
 // Error handler should be last
