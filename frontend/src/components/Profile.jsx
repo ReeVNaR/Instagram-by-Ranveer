@@ -3,8 +3,9 @@ import { FaUser, FaUpload, FaTrash } from 'react-icons/fa';
 import PopupModal from './PopupModal';
 import { useTheme } from '../context/ThemeContext';
 
-const Profile = ({ profileData, isEditing, ...props }) => {
+const Profile = ({ profileData, isEditing, handleSaveProfile, setSelectedImage, handleDelete, ...props }) => {
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, postId: null });
+  const [profilePic, setProfilePic] = useState(null);
   const { isDarkMode } = useTheme();
 
   if (!profileData) return null;
@@ -17,6 +18,19 @@ const Profile = ({ profileData, isEditing, ...props }) => {
   const handleConfirmDelete = () => {
     handleDelete(deleteModal.postId);
     setDeleteModal({ isOpen: false, postId: null });
+  };
+
+  const handleProfilePicUpdate = async () => {
+    if (!profilePic) return;
+    try {
+      const formData = new FormData();
+      formData.append("image", profilePic);
+      await axios.post(`${API_URL}/profile/picture`, formData);
+      // Refresh profile data after update
+      window.location.reload();
+    } catch (err) {
+      alert("Failed to update profile picture");
+    }
   };
 
   return (
@@ -38,7 +52,7 @@ const Profile = ({ profileData, isEditing, ...props }) => {
           ) : (
             <div className="flex w-full sm:w-auto space-x-2 mt-4 sm:mt-0">
               <button
-                onClick={props.handleSaveProfile}
+                onClick={handleSaveProfile}
                 className="px-4 py-2 text-sm bg-green-500 text-white rounded-lg hover:bg-green-600"
               >
                 Save
@@ -143,7 +157,7 @@ const Profile = ({ profileData, isEditing, ...props }) => {
             className={`relative aspect-square group ${
               isDarkMode ? 'bg-dark-secondary' : 'bg-white'
             } rounded-lg overflow-hidden`}
-            onClick={() => props.setSelectedImage(post)}
+            onClick={() => setSelectedImage(post)}
           >
             <img
               src={post.url}
