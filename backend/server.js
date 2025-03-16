@@ -588,7 +588,7 @@ app.get("/api/messages/:friendId/unread/count", auth, async (req, res) => {
   }
 });
 
-// Add this route for checking API health
+// Move API health check before static serving
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok' });
 });
@@ -601,33 +601,54 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 if (process.env.NODE_ENV === 'production') {
-  const frontendBuildPath = path.resolve(__dirname, '../frontend/dist');
-  
-  // Serve static files
-  app.use(express.static(frontendBuildPath));
+  // Determine build path based on environment
+  const buildPath = process.env.IS_RENDER 
+    ? '/opt/render/project/src/dist'  // Render's build path
+    : path.resolve(__dirname, '../frontend/dist'); // Local build path
 
-  // Handle all non-API routes by serving index.html
-  app.get(/^(?!\/api).*/, (req, res) => {
-    try {
-      const indexPath = path.join(frontendBuildPath, 'index.html');
-      if (fs.existsSync(indexPath)) {
-        res.sendFile(indexPath);
-      } else {
-        console.error('index.html not found at:', indexPath);
-        res.status(404).send('Frontend not built');
+  console.log('Current directory:', __dirname);
+  console.log('Build path:', buildPath);
+  console.log('Index path:', path.join(buildPath, 'index.html'));
+  console.log('Build directory exists:', fs.existsSync(buildPath));
+
+  // Serve static files if build directory exists
+  if (fs.existsSync(buildPath)) {
+    app.use(express.static(buildPath));
+
+    // Single handler for all client-side routes
+    app.get('*', (req, res, next) => {
+      if (req.url.startsWith('/api')) {
+        return next();
       }
-    } catch (err) {
-      console.error('Error serving index.html:', err);
-      res.status(500).send('Internal server error');
-    }
-  });
 
-  // Error handler for API routes
-  app.use((err, req, res, next) => {
-    console.error('Server error:', err);
-    res.status(500).json({ error: 'Internal server error' });
-  });
+      const indexPath = path.join(buildPath, 'index.html');
+      
+      if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath, err => {
+          if (err) {
+            console.error('Error serving index.html:', err);
+            res.status(500).send('Error loading application');
+          }
+        });
+      } else {
+        res.status(404).send('Application not found');
+      }
+    });
+  } else {
+    console.warn('Warning: Build directory not found');
+    app.get('*', (req, res) => {
+      if (!req.url.startsWith('/api')) {
+        res.status(404).send('Application not built');
+      }
+    });
+  }
 }
+
+// Error handler should be last
+app.use((err, req, res, next) => {
+  console.error('Server error:', err);
+  res.status(500).json({ error: 'Internal server error' });
+});
 
 // Start Server
 const PORT = process.env.PORT || 5000;
