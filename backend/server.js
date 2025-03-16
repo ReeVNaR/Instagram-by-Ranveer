@@ -19,7 +19,7 @@ const corsOptions = {
   origin: [
     'http://localhost:5173',
     'https://instagram-by-reevnar.onrender.com',
-    'https://instagram-by-ranveer-1.onrender.com'
+    'https://instagram-by-reevnar.onrender.com'
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -601,31 +601,42 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 if (process.env.NODE_ENV === 'production') {
-  const frontendBuildPath = path.resolve(__dirname, '../frontend/dist');
-  
+  // Determine the correct build path based on environment
+  const isRender = process.env.RENDER === 'true';
+  const frontendBuildPath = isRender 
+    ? path.resolve('/opt/render/project/src/frontend/build')  // Render path
+    : path.resolve(__dirname, '../frontend/dist');           // Local path
+
+  console.log('Current directory:', __dirname);
+  console.log('Looking for frontend build at:', frontendBuildPath);
+
   // Check if build directory exists
   if (!fs.existsSync(frontendBuildPath)) {
-    console.warn('Warning: Build directory not found:', frontendBuildPath);
-  } else {
-    // Serve static files
-    app.use(express.static(frontendBuildPath));
+    console.warn(`Warning: Build directory not found at ${frontendBuildPath}`);
+    console.warn('Creating directory...');
+    try {
+      fs.mkdirSync(frontendBuildPath, { recursive: true });
+    } catch (err) {
+      console.error('Error creating build directory:', err);
+    }
   }
 
-  // Handle all routes
-  app.get('*', (req, res) => {
+  // Serve static files
+  app.use(express.static(frontendBuildPath));
+
+  // Handle client-side routing
+  app.get('*', (req, res, next) => {
     if (req.url.startsWith('/api')) {
-      // Let API routes be handled by their handlers
       return next();
     }
 
     const indexPath = path.join(frontendBuildPath, 'index.html');
-    
-    // Check if index.html exists before sending
     if (fs.existsSync(indexPath)) {
       res.sendFile(indexPath);
     } else {
+      console.error('index.html not found at:', indexPath);
       res.status(404).json({ 
-        error: 'Frontend build not found. Please ensure the frontend is built and deployed correctly.'
+        error: 'Frontend not built. Please run npm run build in the frontend directory.'
       });
     }
   });
