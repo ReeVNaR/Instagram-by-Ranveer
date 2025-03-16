@@ -276,8 +276,9 @@ app.post("/api/profile/picture", auth, upload.single("image"), async (req, res) 
   try {
     const user = await User.findById(req.userId);
     if (user.profilePic) {
+      // Extract public_id from the old profile picture URL
+      const publicId = user.profilePic.split('/').slice(-2).join('/').split('.')[0];
       // Delete old profile picture from cloudinary
-      const publicId = user.profilePic.split('/').pop().split('.')[0];
       await cloudinary.v2.uploader.destroy(publicId);
     }
     

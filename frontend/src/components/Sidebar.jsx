@@ -97,7 +97,7 @@ const Sidebar = ({ activeTab, setActiveTab, unreadMessages, onShowAccount }) => 
           </button>
 
           {showSettings && (
-            <div className={`absolute bottom-full left-0 w-48 mb-2 rounded-lg shadow-lg border overflow-hidden ${
+            <div className={`absolute top-0 left-full ml-2 w-48 rounded-lg shadow-lg border overflow-hidden ${
               isDarkMode ? 'bg-dark-secondary border-dark-border' : 'bg-white'
             }`}>
               <button
