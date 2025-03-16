@@ -19,7 +19,7 @@ const LoginPage = () => {
       if (isLogin) {
         localStorage.setItem("token", res.data.token);
         localStorage.setItem("isAdmin", res.data.user.isAdmin);
-        navigate('/home');
+        navigate('/');  // Changed from '/home' to '/'
       } else {
         alert("User Registered! Please Login.");
         setView("login");

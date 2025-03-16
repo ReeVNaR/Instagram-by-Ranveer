@@ -40,6 +40,31 @@ const HomePage = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [refreshStatus, setRefreshStatus] = useState('');
 
+  useEffect(() => {
+    // Check for token existence
+    const token = localStorage.getItem('token');
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+
+    // Verify token hasn't expired
+    try {
+      const tokenData = JSON.parse(atob(token.split('.')[1]));
+      if (tokenData.exp * 1000 < Date.now()) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('isAdmin');
+        navigate('/login');
+        return;
+      }
+    } catch (err) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('isAdmin');
+      navigate('/login');
+      return;
+    }
+  }, [navigate]);
+
   const fetchFeed = async () => {
     setIsLoading(true);
     try {
@@ -53,10 +78,6 @@ const HomePage = () => {
   };
 
   useEffect(() => {
-    if (!localStorage.getItem('token')) {
-      navigate('/');
-      return;
-    }
     if (activeTab === 'feed') {
       fetchFeed();
     } else if (activeTab === 'profile') {
@@ -64,12 +85,12 @@ const HomePage = () => {
     } else {
       fetchImages();
     }
-  }, [navigate, activeTab]);
+  }, [activeTab]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("isAdmin");
-    navigate('/');
+    navigate('/login');  // Changed from '/' to '/login'
   };
 
   const fetchImages = async () => {
