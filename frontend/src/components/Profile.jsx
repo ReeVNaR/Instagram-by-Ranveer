@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { FaUser, FaUpload, FaTrash } from 'react-icons/fa';
+import { FaUser, FaUpload, FaEllipsisV } from 'react-icons/fa';
 import axios, { API_URL } from '../config/axios';
 import PopupModal from './PopupModal';
 import { useTheme } from '../context/ThemeContext';
 
 const Profile = ({ profileData, isEditing, handleSaveProfile, setSelectedImage, handleDelete, ...props }) => {
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, postId: null });
+  const [activeDropdown, setActiveDropdown] = useState(null);
   const [profilePic, setProfilePic] = useState(null);
   const { isDarkMode } = useTheme();
 
@@ -14,6 +15,12 @@ const Profile = ({ profileData, isEditing, handleSaveProfile, setSelectedImage, 
   const handleDeleteClick = (e, postId) => {
     e.stopPropagation();
     setDeleteModal({ isOpen: true, postId });
+    setActiveDropdown(null);
+  };
+
+  const toggleDropdown = (e, postId) => {
+    e.stopPropagation();
+    setActiveDropdown(activeDropdown === postId ? null : postId);
   };
 
   const handleConfirmDelete = () => {
@@ -170,13 +177,39 @@ const Profile = ({ profileData, isEditing, handleSaveProfile, setSelectedImage, 
               alt=""
               className="w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 flex items-center justify-center">
+            <div className="absolute top-2 right-2">
               <button
-                onClick={(e) => handleDeleteClick(e, post._id)}
-                className="text-white opacity-0 group-hover:opacity-100 transition-opacity p-2 hover:text-red-500"
+                onClick={(e) => toggleDropdown(e, post._id)}
+                className={`p-2 rounded-full ${
+                  isDarkMode 
+                    ? 'bg-black bg-opacity-50 hover:bg-opacity-75' 
+                    : 'bg-white bg-opacity-75 hover:bg-opacity-100'
+                } text-gray-700`}
               >
-                <FaTrash className="text-xl" />
+                <FaEllipsisV className={isDarkMode ? 'text-white' : 'text-gray-700'} />
               </button>
+              {activeDropdown === post._id && (
+                <div 
+                  className={`absolute right-0 mt-1 w-48 rounded-md shadow-lg z-10 ${
+                    isDarkMode 
+                      ? 'bg-dark-secondary border border-dark-border' 
+                      : 'bg-white border border-gray-200'
+                  }`}
+                >
+                  <div className="py-1">
+                    <button
+                      onClick={(e) => handleDeleteClick(e, post._id)}
+                      className={`w-full text-left px-4 py-2 text-sm ${
+                        isDarkMode 
+                          ? 'text-red-400 hover:bg-dark-primary' 
+                          : 'text-red-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      Delete post
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         ))}
