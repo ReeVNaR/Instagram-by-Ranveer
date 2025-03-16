@@ -588,19 +588,25 @@ app.get("/api/messages/:friendId/unread/count", auth, async (req, res) => {
   }
 });
 
+// Add this route for checking API health
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok' });
+});
+
 // Express static file serving for production
 import path from 'path';
 import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Move production configuration after all API routes
 if (process.env.NODE_ENV === 'production') {
   // Serve static files from the React app
   const frontendBuildPath = path.resolve(__dirname, '../frontend/dist');
   app.use(express.static(frontendBuildPath));
 
-  // Catch-all route handler
-  app.get('/*', function(req, res) {
+  // Catch-all route handler - only match non-API routes
+  app.get(/^(?!\/api).*/, function(req, res) {
     res.sendFile(path.resolve(frontendBuildPath, 'index.html'));
   });
 }
