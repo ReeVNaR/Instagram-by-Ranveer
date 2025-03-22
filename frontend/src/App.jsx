@@ -14,11 +14,13 @@ function App() {
       <Router>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/*" element={
+          <Route path="/register" element={<LoginPage />} />
+          <Route path="/" element={
             <PrivateRoute>
               <HomePage />
             </PrivateRoute>
           } />
+          <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </Router>
     </ThemeProvider>
