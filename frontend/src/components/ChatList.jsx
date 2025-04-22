@@ -94,24 +94,24 @@ const ChatList = ({ onSelectFriend }) => {
   };
 
   return (
-    <div className={`w-full ${isDarkMode ? 'bg-dark-secondary' : 'bg-white'}`}>
+    <div className={`w-full h-full ${isDarkMode ? 'bg-dark-secondary' : 'bg-white'}`}>
       <div className={`p-4 border-b ${
         isDarkMode ? 'bg-dark-secondary border-dark-border text-dark-primary' : 'bg-gray-50'
       }`}>
-        <h2 className="font-semibold text-lg">Friends</h2>
+        <h2 className="font-semibold text-lg">Messages</h2>
       </div>
-      <div className="overflow-y-auto h-[calc(100vh-180px)]">
+      <div className="overflow-y-auto h-[calc(100vh-240px)] sm:h-[calc(100vh-180px)]">
         {friends.map(friend => (
           <div
             key={friend._id}
             onClick={() => handleFriendClick(friend)}
-            className={`flex items-center p-3 cursor-pointer border-b relative ${
+            className={`flex items-center p-4 cursor-pointer border-b relative ${
               isDarkMode 
                 ? 'hover:bg-dark-primary border-dark-border' 
                 : 'hover:bg-gray-50 border-gray-100'
             }`}
           >
-            <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
               {friend.profilePic ? (
                 <img 
                   src={friend.profilePic} 

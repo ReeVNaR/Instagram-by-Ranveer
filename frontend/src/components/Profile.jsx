@@ -1,14 +1,17 @@
 import { useState } from 'react';
-import { FaUser, FaUpload, FaEllipsisV } from 'react-icons/fa';
+import { FaUser, FaUpload, FaEllipsisV, FaCog, FaSignOutAlt, FaMoon, FaSun, FaLock } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 import axios, { API_URL } from '../config/axios';
 import PopupModal from './PopupModal';
 import { useTheme } from '../context/ThemeContext';
 
-const Profile = ({ profileData, isEditing, handleSaveProfile, setSelectedImage, handleDelete, ...props }) => {
+const Profile = ({ profileData, isEditing, handleSaveProfile, setSelectedImage, handleDelete, isPrivate, togglePrivacy, ...props }) => {
+  const navigate = useNavigate();
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, postId: null });
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [profilePic, setProfilePic] = useState(null);
-  const { isDarkMode } = useTheme();
+  const { isDarkMode, toggleTheme } = useTheme();
+  const [showMobileSettings, setShowMobileSettings] = useState(false);
 
   if (!profileData) return null;
 
@@ -50,12 +53,91 @@ const Profile = ({ profileData, isEditing, handleSaveProfile, setSelectedImage, 
     }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('isAdmin');
+    navigate('/login');
+  };
+
   return (
-    <div className="max-w-4xl mx-auto px-2 sm:px-4">
-      <div className={`rounded-lg p-4 sm:p-6 mb-6 ${
+    <div className="w-full max-w-4xl mx-auto p-0 sm:px-4">
+      {/* Mobile Settings Bar */}
+      <div className="relative">
+        <div className={`sm:hidden flex justify-center items-center p-4 mb-2 w-full ${
+          isDarkMode ? 'bg-dark-secondary border border-dark-border' : 'bg-white'
+        }`}>
+          <div className="flex justify-between w-full max-w-[300px]">
+            <button
+              onClick={() => setShowMobileSettings(!showMobileSettings)}
+              className={`flex items-center space-x-2 ${
+                isDarkMode ? 'text-dark-primary' : 'text-gray-700'
+              }`}
+            >
+              <FaCog className={`text-xl transition-transform duration-200 ${showMobileSettings ? 'rotate-45' : ''}`} />
+              <span>Settings</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Settings Dropdown */}
+        {showMobileSettings && (
+          <div className={`sm:hidden absolute top-full left-0 right-0 z-50 ${
+            isDarkMode ? 'bg-dark-secondary border-dark-border' : 'bg-white'
+          } border-t shadow-lg`}>
+            <div className="p-4 space-y-4">
+              <button
+                onClick={() => {
+                  togglePrivacy();
+                  setShowMobileSettings(false);
+                }}
+                className="w-full flex items-center justify-between p-2"
+              >
+                <div className="flex items-center space-x-2">
+                  <FaLock className={isDarkMode ? 'text-dark-primary' : 'text-gray-700'} />
+                  <span>Private Account</span>
+                </div>
+                <div className={`w-10 h-6 rounded-full transition-colors ${
+                  isPrivate ? 'bg-[#0095F6]' : isDarkMode ? 'bg-gray-700' : 'bg-gray-200'
+                }`}>
+                  <div className={`w-5 h-5 rounded-full bg-white transform transition-transform ${
+                    isPrivate ? 'translate-x-4' : 'translate-x-1'
+                  }`} />
+                </div>
+              </button>
+
+              <button
+                onClick={() => {
+                  toggleTheme();
+                  setShowMobileSettings(false);
+                }}
+                className="w-full flex items-center justify-between p-2"
+              >
+                <div className="flex items-center space-x-2">
+                  {isDarkMode ? <FaSun className="text-yellow-500" /> : <FaMoon className="text-gray-700" />}
+                  <span>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
+                </div>
+              </button>
+
+              <button
+                onClick={() => {
+                  handleLogout();
+                  setShowMobileSettings(false);
+                }}
+                className="w-full flex items-center space-x-2 p-2 text-red-500"
+              >
+                <FaSignOutAlt />
+                <span>Logout</span>
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Profile Content */}
+      <div className={`w-full rounded-lg p-3 sm:p-6 mb-4 ${
         isDarkMode ? 'bg-dark-secondary border border-dark-border' : 'bg-white'
       }`}>
-        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+        <div className="flex flex-col items-center sm:flex-row sm:items-start gap-6">
           {/* Profile Image Section */}
           <div className="relative group">
             <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden flex-shrink-0">
@@ -88,41 +170,52 @@ const Profile = ({ profileData, isEditing, handleSaveProfile, setSelectedImage, 
             )}
           </div>
 
-          {/* Profile Info Section */}
-          <div className="flex-1 w-full sm:w-auto text-center sm:text-left">
-            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
+          {/* Profile Info Section - Updated for desktop logout */}
+          <div className="flex-1 w-full sm:w-auto text-center sm:text-left space-y-4">
+            <div className="flex flex-col items-center sm:flex-row sm:items-start gap-4">
               <h2 className={`text-xl font-semibold ${isDarkMode ? 'text-dark-primary' : ''}`}>
                 {profileData.user.username}
               </h2>
-              {!isEditing ? (
-                <button
-                  onClick={() => props.setIsEditing(true)}
-                  className="w-full sm:w-auto px-4 py-2 text-sm bg-[#0095F6] text-white rounded-lg hover:bg-blue-600"
-                >
-                  Edit Profile
-                </button>
-              ) : (
-                <div className="flex gap-2 w-full sm:w-auto">
-                  <button
-                    onClick={handleSaveProfile}
-                    className="flex-1 sm:flex-initial px-4 py-2 text-sm bg-green-500 text-white rounded-lg hover:bg-green-600"
-                  >
-                    Save
-                  </button>
-                  <button
-                    onClick={() => {
-                      props.setIsEditing(false);
-                      props.setNewDisplayName(profileData.user.displayName || '');
-                    }}
-                    className="flex-1 sm:flex-initial px-4 py-2 text-sm bg-gray-500 text-white rounded-lg hover:bg-gray-600"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              )}
+              <div className="flex gap-2">
+                {!isEditing ? (
+                  <>
+                    <button
+                      onClick={() => props.setIsEditing(true)}
+                      className="min-w-[120px] px-4 py-2 text-sm bg-[#0095F6] text-white rounded-lg hover:bg-blue-600"
+                    >
+                      Edit Profile
+                    </button>
+                    <button
+                      onClick={handleLogout}
+                      className="hidden sm:flex items-center space-x-2 px-4 py-2 text-sm text-red-500 border border-red-500 rounded-lg hover:bg-red-50"
+                    >
+                      <FaSignOutAlt className="text-sm" />
+                      <span>Logout</span>
+                    </button>
+                  </>
+                ) : (
+                  <div className="flex gap-2 w-full sm:w-auto justify-center sm:justify-start">
+                    <button
+                      onClick={handleSaveProfile}
+                      className="min-w-[80px] px-4 py-2 text-sm bg-green-500 text-white rounded-lg hover:bg-green-600"
+                    >
+                      Save
+                    </button>
+                    <button
+                      onClick={() => {
+                        props.setIsEditing(false);
+                        props.setNewDisplayName(profileData.user.displayName || '');
+                      }}
+                      className="min-w-[80px] px-4 py-2 text-sm bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
 
-            <div className="flex justify-center sm:justify-start gap-6 mt-4">
+            <div className="flex justify-center sm:justify-start gap-6">
               <div>
                 <span className={`font-semibold ${isDarkMode ? 'text-dark-primary' : ''}`}>
                   {profileData.user.friends?.length || 0}
@@ -142,17 +235,19 @@ const Profile = ({ profileData, isEditing, handleSaveProfile, setSelectedImage, 
             </div>
 
             {isEditing ? (
-              <input
-                type="text"
-                value={props.newDisplayName}
-                onChange={(e) => props.setNewDisplayName(e.target.value)}
-                className={`mt-4 w-full max-w-md p-2 rounded-lg focus:ring-2 focus:ring-[#0095F6] ${
-                  isDarkMode 
-                    ? 'bg-dark-primary border-dark-border text-dark-primary' 
-                    : 'border'
-                }`}
-                placeholder="Display name"
-              />
+              <div className="flex justify-center sm:justify-start">
+                <input
+                  type="text"
+                  value={props.newDisplayName}
+                  onChange={(e) => props.setNewDisplayName(e.target.value)}
+                  className={`mt-4 w-full max-w-[300px] sm:max-w-md p-2 rounded-lg focus:ring-2 focus:ring-[#0095F6] ${
+                    isDarkMode 
+                      ? 'bg-dark-primary border-dark-border text-dark-primary' 
+                      : 'border'
+                  }`}
+                  placeholder="Display name"
+                />
+              </div>
             ) : (
               <p className={`mt-4 ${isDarkMode ? 'text-dark-secondary' : 'text-gray-600'}`}>
                 {profileData.user.displayName || 'No display name set'}
@@ -162,8 +257,8 @@ const Profile = ({ profileData, isEditing, handleSaveProfile, setSelectedImage, 
         </div>
       </div>
 
-      {/* Posts Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4">
+      {/* Posts Grid - Updated for mobile */}
+      <div className="grid grid-cols-3 gap-[2px] sm:gap-4 mx-auto w-full">
         {profileData.posts.map((post) => (
           <div
             key={post._id}

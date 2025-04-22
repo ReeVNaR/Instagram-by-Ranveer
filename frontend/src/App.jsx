@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import LoginPage from './pages/LoginPage';
 import HomePage from './pages/HomePage';
 import { ThemeProvider } from './context/ThemeContext';
+import ChatPage from './pages/ChatPage';
 
 const PrivateRoute = ({ children }) => {
   const token = localStorage.getItem('token');
@@ -18,6 +19,16 @@ function App() {
           <Route path="/" element={
             <PrivateRoute>
               <HomePage />
+            </PrivateRoute>
+          } />
+          <Route path="/messages" element={
+            <PrivateRoute>
+              <ChatPage />
+            </PrivateRoute>
+          } />
+          <Route path="/messages/:friendId" element={
+            <PrivateRoute>
+              <ChatPage />
             </PrivateRoute>
           } />
           <Route path="*" element={<Navigate to="/" />} />
