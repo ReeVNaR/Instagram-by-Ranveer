@@ -624,6 +624,23 @@ const pingServer = async () => {
   }
 };
 
+// Add this new endpoint before the server start
+app.delete("/api/friends/:friendId", auth, async (req, res) => {
+  try {
+    // Remove friend from both users' friends arrays
+    await User.findByIdAndUpdate(req.userId, {
+      $pull: { friends: req.params.friendId }
+    });
+    await User.findByIdAndUpdate(req.params.friendId, {
+      $pull: { friends: req.userId }
+    });
+    
+    res.json({ message: "Friend removed successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Start Server
 const serverPort = 5000;
 app.listen(serverPort, () => {

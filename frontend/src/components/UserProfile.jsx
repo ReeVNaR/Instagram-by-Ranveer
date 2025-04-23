@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FaUser, FaUserPlus } from 'react-icons/fa';
+import { FaUser, FaUserPlus, FaUserMinus } from 'react-icons/fa';
 import axios, { API_URL } from "../config/axios";
 import { useTheme } from '../context/ThemeContext';
 
@@ -42,6 +42,15 @@ const UserProfile = ({ userId, setSelectedImage, onStartChat }) => {
       setRequestSent(true);
     } catch (err) {
       alert(err.response?.data?.error || 'Failed to send request');
+    }
+  };
+
+  const handleRemoveFriend = async () => {
+    try {
+      await axios.delete(`${API_URL}/friends/${userId}`);
+      setIsFriend(false);
+    } catch (err) {
+      alert(err.response?.data?.error || 'Failed to remove friend');
     }
   };
 
@@ -104,13 +113,22 @@ const UserProfile = ({ userId, setSelectedImage, onStartChat }) => {
                       posts
                     </span>
                   </div>
-                  {isFriend && onStartChat && (
-                    <button
-                      onClick={() => onStartChat(profileData.user)}
-                      className="px-4 py-2 bg-[#0095F6] text-white rounded-lg text-sm hover:bg-blue-600"
-                    >
-                      Message
-                    </button>
+                  {isFriend && (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => onStartChat(profileData.user)}
+                        className="px-4 py-2 bg-[#0095F6] text-white rounded-lg text-sm hover:bg-blue-600"
+                      >
+                        Message
+                      </button>
+                      <button
+                        onClick={handleRemoveFriend}
+                        className="px-4 py-2 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600 flex items-center space-x-2"
+                      >
+                        <FaUserMinus />
+                        <span>Remove Friend</span>
+                      </button>
+                    </div>
                   )}
                   {!isFriend && !requestSent && (
                     <button
