@@ -7,18 +7,33 @@ import jwt from "jsonwebtoken";
 import multer from "multer";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import cloudinary from "cloudinary";
+import fetch from 'node-fetch';  // Add this import at the top
 
 // Load environment variables
 dotenv.config();
 
+// Add this function after imports and before app initialization
+const keepServerAlive = () => {
+  const serverUrl = process.env.SERVER_URL || 'https://fakeinsta-ykxr.onrender.com';
+  setInterval(async () => {
+    try {
+      const response = await fetch(`${serverUrl}/api/health`);
+      console.log('Server ping:', new Date().toLocaleString());
+    } catch (error) {
+      console.error('Server ping failed:', error);
+    }
+  }, 30000); // 30 seconds
+};
+
 // Initialize Express app
 const app = express();
+keepServerAlive();  // Start the keep-alive ping
 
 // CORS configuration
 const corsOptions = {
   origin: [
     'http://localhost:5173',
-    'https://instagram-by-reevnar.onrender.com',
+    'https://fakeinsta-ykxr.onrender.com',
     'https://instagram-by-ranveer.vercel.app'
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
