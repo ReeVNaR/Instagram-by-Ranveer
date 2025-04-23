@@ -1,10 +1,15 @@
 import axios from 'axios';
 
 export const API_URL = process.env.NODE_ENV === 'production' 
-  ? "https://instagram-by-reevnar.onrender.com" 
+  ? "https://instagram-by-reevnar.onrender.com/api" 
   : "http://localhost:5000/api";
 
-axios.interceptors.request.use(
+const axiosInstance = axios.create({
+  baseURL: API_URL,
+  withCredentials: true
+});
+
+axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
     if (token) {
@@ -15,4 +20,4 @@ axios.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-export default axios;
+export default axiosInstance;
