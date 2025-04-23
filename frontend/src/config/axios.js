@@ -18,12 +18,13 @@ axiosInstance.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    // Ensure CORS credentials are properly handled
+    config.withCredentials = true;
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-// Add response interceptor to handle CORS errors
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {

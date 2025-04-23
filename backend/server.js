@@ -24,14 +24,14 @@ const corsOptions = {
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
-  optionsSuccessStatus: 200,
-  exposedHeaders: ['Access-Control-Allow-Origin']
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 };
 
-// Apply CORS middleware
+// Apply CORS middleware before any routes
 app.use(cors(corsOptions));
 
-// Remove the conflicting middleware that was here
+// Remove all manual CORS headers - we'll let the cors package handle everything
 app.use(express.json());
 
 // Connect to MongoDB
