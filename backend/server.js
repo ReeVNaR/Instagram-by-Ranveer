@@ -36,7 +36,6 @@ const corsOptions = {
     'https://fakeinsta-ykxr.onrender.com',
     'https://revsinsta.vercel.app/',
     'https://revsinsta.vercel.app/login',
-    'https://instagram-by-ranveer.vercel.app'
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
