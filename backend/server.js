@@ -33,8 +33,7 @@ keepServerAlive();  // Start the keep-alive ping
 const corsOptions = {
   origin: [
     'http://localhost:5173',
-    'https://revsinsta.vercel.app',
-    'https://revsinsta.vercel.app/login'
+    'https://revsinsta.vercel.app'
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
