@@ -19,7 +19,7 @@ const corsOptions = {
   origin: [
     'http://localhost:5173',
     'https://instagram-by-reevnar.onrender.com',
-    'https://instagram-by-ranveer.vercel.app'
+    'https://revsinsta.vercel.app'
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
