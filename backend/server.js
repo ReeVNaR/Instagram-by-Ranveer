@@ -7,6 +7,7 @@ import jwt from "jsonwebtoken";
 import multer from "multer";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import cloudinary from "cloudinary";
+import fetch from 'node-fetch';
 
 // Load environment variables
 dotenv.config();
@@ -611,8 +612,21 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
+// Add before server start
+const pingServer = async () => {
+  try {
+    const serverUrl = process.env.SERVER_URL || `https://instagram-by-ranveer-0yvp.onrender.com`;
+    await fetch(`${serverUrl}/api/health`);
+    console.log('Server pinged successfully');
+  } catch (err) {
+    console.error('Failed to ping server:', err.message);
+  }
+};
+
 // Start Server
 const serverPort = 5000;
 app.listen(serverPort, () => {
   console.log(`Server running on port ${serverPort}`);
+  // Ping every 5 minutes
+  setInterval(pingServer, 5 * 60 * 1000);
 });
