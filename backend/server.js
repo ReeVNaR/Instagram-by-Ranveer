@@ -18,8 +18,8 @@ const app = express();
 const corsOptions = {
   origin: [
     'http://localhost:5173',
-    'https://fakeinsta-ykxr.onrender.com',
-    'https://revsinsta.vercel.app'
+    'https://instagram-by-reevnar.onrender.com',
+    'https://instagram-by-ranveer.vercel.app'
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],

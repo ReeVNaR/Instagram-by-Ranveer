@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 export const API_URL = process.env.NODE_ENV === 'production' 
-  ? "https://fakeinsta-ykxr.onrender.com" 
+  ? "https://instagram-by-reevnar.onrender.com" 
   : "http://localhost:5000/api";
 
 axios.interceptors.request.use(
