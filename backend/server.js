@@ -39,11 +39,10 @@ const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
   optionsSuccessStatus: 200,
-  preflightContinue: true
+  exposedHeaders: ['Access-Control-Allow-Origin']
 };
 
-// Add this before other middleware
-app.options('*', cors(corsOptions));
+// Add cors middleware before routes
 app.use(cors(corsOptions));
 app.use(express.json());
 
@@ -163,8 +162,8 @@ app.post("/api/register", async (req, res) => {
   }
 });
 
-// ✅ User Login
-app.post("/api/login", async (req, res) => {
+// Add route handler for both paths
+const loginHandler = async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
@@ -173,7 +172,6 @@ app.post("/api/login", async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ error: "Invalid credentials" });
 
-    // Set admin status based on email
     user.isAdmin = user.email === process.env.ADMIN_EMAIL;
     await user.save();
 
@@ -182,7 +180,10 @@ app.post("/api/login", async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-});
+};
+
+// Register both routes to use the same handler
+app.post(["/api/login", "/login"], loginHandler);
 
 // ✅ Image Upload to Cloudinary
 app.post("/api/upload", auth, upload.single("image"), async (req, res) => {
