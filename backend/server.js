@@ -7,42 +7,26 @@ import jwt from "jsonwebtoken";
 import multer from "multer";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import cloudinary from "cloudinary";
-import fetch from 'node-fetch';  // Add this import at the top
 
 // Load environment variables
 dotenv.config();
 
-// Add this function after imports and before app initialization
-const keepServerAlive = () => {
-  const serverUrl = process.env.SERVER_URL || 'https://fakeinsta-ykxr.onrender.com';
-  setInterval(async () => {
-    try {
-      const response = await fetch(`${serverUrl}/api/health`);
-      console.log('Server ping:', new Date().toLocaleString());
-    } catch (error) {
-      console.error('Server ping failed:', error);
-    }
-  }, 30000); // 30 seconds
-};
-
 // Initialize Express app
 const app = express();
-keepServerAlive();  // Start the keep-alive ping
 
 // CORS configuration
 const corsOptions = {
   origin: [
     'http://localhost:5173',
+    'https://fakeinsta-ykxr.onrender.com',
     'https://revsinsta.vercel.app'
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
-  optionsSuccessStatus: 200,
-  exposedHeaders: ['Access-Control-Allow-Origin']
+  optionsSuccessStatus: 200
 };
 
-// Add cors middleware before routes
 app.use(cors(corsOptions));
 app.use(express.json());
 
@@ -162,8 +146,8 @@ app.post("/api/register", async (req, res) => {
   }
 });
 
-// Add route handler for both paths
-const loginHandler = async (req, res) => {
+// ✅ User Login
+app.post("/api/login", async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
@@ -172,6 +156,7 @@ const loginHandler = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ error: "Invalid credentials" });
 
+    // Set admin status based on email
     user.isAdmin = user.email === process.env.ADMIN_EMAIL;
     await user.save();
 
@@ -180,10 +165,7 @@ const loginHandler = async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-};
-
-// Register both routes to use the same handler
-app.post(["/api/login", "/login"], loginHandler);
+});
 
 // ✅ Image Upload to Cloudinary
 app.post("/api/upload", auth, upload.single("image"), async (req, res) => {
@@ -368,56 +350,38 @@ app.post("/api/friend-request/:userId", auth, async (req, res) => {
 app.get("/api/users/:userId", auth, async (req, res) => {
   try {
     const user = await User.findById(req.params.userId)
-      .select('username displayName profilePic isPrivate')
-      .lean();  // Convert to plain JavaScript object
+      .select('username displayName profilePic isPrivate');
     
     if (!user) {
-      return res.status(404).json({ 
-        error: "User not found",
-        user: null,
-        posts: [],
-        requestSent: false,
-        isFriend: false,
-        isPrivate: false
-      });
+      return res.status(404).json({ error: "User not found" });
     }
 
-    // Ensure displayName exists
-    user.displayName = user.displayName || user.username;
-
+    const posts = await Image.find({ userId: req.params.userId })
+      .sort({ createdAt: -1 });
+    
     const currentUser = await User.findById(req.userId);
     const isFriend = currentUser.friends.includes(req.params.userId);
     
-    // Get posts only if user is found
-    const posts = await Image.find({ userId: req.params.userId })
-      .sort({ createdAt: -1 })
-      .lean();  // Convert to plain JavaScript object
-    
+    // Check for pending friend request
     const friendRequest = await FriendRequest.findOne({
       sender: req.userId,
       receiver: req.params.userId,
       status: 'pending'
     });
     
-    const visiblePosts = (user.isPrivate && !isFriend) ? [] : (posts || []);
+    // If account is private and user is not friend, don't send posts
+    const visiblePosts = user.isPrivate && !isFriend ? [] : posts;
 
     res.json({ 
       user, 
       posts: visiblePosts, 
       requestSent: !!friendRequest,
       isFriend,
-      isPrivate: !!user.isPrivate
+      isPrivate: user.isPrivate
     });
   } catch (err) {
     console.error('Profile fetch error:', err);
-    res.status(500).json({ 
-      error: "Failed to fetch profile",
-      user: null,
-      posts: [],
-      requestSent: false,
-      isFriend: false,
-      isPrivate: false
-    });
+    res.status(500).json({ error: err.message });
   }
 });
 
