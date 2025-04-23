@@ -443,34 +443,11 @@ const HomePage = () => {
         isDarkMode ? 'bg-dark-secondary border-dark-border text-dark-primary' : 'bg-white'
       }`}>
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-4">
             <FaInstagram className="text-2xl sm:text-3xl text-[#0095F6]" />
             <h1 className={`text-lg sm:text-xl font-semibold ${isDarkMode ? 'text-dark-primary' : ''}`}>
               Fake Insta
             </h1>
-          </div>
-          <div className="flex items-center space-x-4">
-            {isRefreshing ? (
-              <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-[#0095F6]"></div>
-            ) : refreshStatus && (
-              <span className={`text-sm ${
-                refreshStatus.includes('Error') ? 'text-red-500' : 'text-green-500'
-              }`}>
-                {refreshStatus}
-              </span>
-            )}
-            <button 
-              onClick={handleMessagesClick}
-              className="text-[#0095F6] hover:text-blue-700 flex items-center space-x-2 relative"
-            >
-              <FaComments className="text-xl" />
-              <span className="hidden sm:inline">Messages</span>
-              {unreadMessages > 0 && (
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                  {unreadMessages}
-                </span>
-              )}
-            </button>
             <div className="relative">
               <button
                 onClick={() => setShowRequests(!showRequests)}
@@ -547,6 +524,29 @@ const HomePage = () => {
                 </div>
               )}
             </div>
+          </div>
+          <div className="flex items-center space-x-4">
+            {isRefreshing ? (
+              <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-[#0095F6]"></div>
+            ) : refreshStatus && (
+              <span className={`text-sm ${
+                refreshStatus.includes('Error') ? 'text-red-500' : 'text-green-500'
+              }`}>
+                {refreshStatus}
+              </span>
+            )}
+            <button 
+              onClick={handleMessagesClick}
+              className="text-[#0095F6] hover:text-blue-700 flex items-center space-x-2 relative"
+            >
+              <FaComments className="text-xl" />
+              <span className="hidden sm:inline">Messages</span>
+              {unreadMessages > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  {unreadMessages}
+                </span>
+              )}
+            </button>
           </div>
         </div>
       </div>
