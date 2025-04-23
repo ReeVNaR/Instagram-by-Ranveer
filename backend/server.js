@@ -33,16 +33,18 @@ keepServerAlive();  // Start the keep-alive ping
 const corsOptions = {
   origin: [
     'http://localhost:5173',
-    'https://fakeinsta-ykxr.onrender.com',
-    'https://revsinsta.vercel.app/',
-    'https://revsinsta.vercel.app/login',
+    'https://revsinsta.vercel.app',
+    'https://revsinsta.vercel.app/login'
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
-  optionsSuccessStatus: 200
+  optionsSuccessStatus: 200,
+  preflightContinue: true
 };
 
+// Add this before other middleware
+app.options('*', cors(corsOptions));
 app.use(cors(corsOptions));
 app.use(express.json());
 
