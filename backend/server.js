@@ -368,38 +368,56 @@ app.post("/api/friend-request/:userId", auth, async (req, res) => {
 app.get("/api/users/:userId", auth, async (req, res) => {
   try {
     const user = await User.findById(req.params.userId)
-      .select('username displayName profilePic isPrivate');
+      .select('username displayName profilePic isPrivate')
+      .lean();  // Convert to plain JavaScript object
     
     if (!user) {
-      return res.status(404).json({ error: "User not found" });
+      return res.status(404).json({ 
+        error: "User not found",
+        user: null,
+        posts: [],
+        requestSent: false,
+        isFriend: false,
+        isPrivate: false
+      });
     }
 
-    const posts = await Image.find({ userId: req.params.userId })
-      .sort({ createdAt: -1 });
-    
+    // Ensure displayName exists
+    user.displayName = user.displayName || user.username;
+
     const currentUser = await User.findById(req.userId);
     const isFriend = currentUser.friends.includes(req.params.userId);
     
-    // Check for pending friend request
+    // Get posts only if user is found
+    const posts = await Image.find({ userId: req.params.userId })
+      .sort({ createdAt: -1 })
+      .lean();  // Convert to plain JavaScript object
+    
     const friendRequest = await FriendRequest.findOne({
       sender: req.userId,
       receiver: req.params.userId,
       status: 'pending'
     });
     
-    // If account is private and user is not friend, don't send posts
-    const visiblePosts = user.isPrivate && !isFriend ? [] : posts;
+    const visiblePosts = (user.isPrivate && !isFriend) ? [] : (posts || []);
 
     res.json({ 
       user, 
       posts: visiblePosts, 
       requestSent: !!friendRequest,
       isFriend,
-      isPrivate: user.isPrivate
+      isPrivate: !!user.isPrivate
     });
   } catch (err) {
     console.error('Profile fetch error:', err);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ 
+      error: "Failed to fetch profile",
+      user: null,
+      posts: [],
+      requestSent: false,
+      isFriend: false,
+      isPrivate: false
+    });
   }
 });
 
