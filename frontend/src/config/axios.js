@@ -6,7 +6,10 @@ export const API_URL = process.env.NODE_ENV === 'production'
 
 const axiosInstance = axios.create({
   baseURL: API_URL,
-  withCredentials: true
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json'
+  }
 });
 
 axiosInstance.interceptors.request.use(
@@ -18,6 +21,17 @@ axiosInstance.interceptors.request.use(
     return config;
   },
   (error) => Promise.reject(error)
+);
+
+// Add response interceptor to handle CORS errors
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.message === 'Network Error') {
+      console.error('CORS or Network Error:', error);
+    }
+    return Promise.reject(error);
+  }
 );
 
 export default axiosInstance;
