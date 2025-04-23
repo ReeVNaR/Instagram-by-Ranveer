@@ -616,10 +616,11 @@ app.use((err, req, res, next) => {
 const pingServer = async () => {
   try {
     const serverUrl = process.env.SERVER_URL || `https://instagram-by-ranveer-0yvp.onrender.com`;
+    const timestamp = new Date().toISOString();
     await fetch(`${serverUrl}/api/health`);
-    console.log('Server pinged successfully');
+    console.log(`[${timestamp}] Server pinged successfully`);
   } catch (err) {
-    console.error('Failed to ping server:', err.message);
+    console.error(`[${new Date().toISOString()}] Failed to ping server:`, err.message);
   }
 };
 
@@ -627,6 +628,8 @@ const pingServer = async () => {
 const serverPort = 5000;
 app.listen(serverPort, () => {
   console.log(`Server running on port ${serverPort}`);
-  // Ping every 5 minutes
-  setInterval(pingServer, 5 * 60 * 1000);
+  // Ping every 30 seconds
+  setInterval(pingServer, 30 * 1000);
+  // Initial ping
+  pingServer();
 });
